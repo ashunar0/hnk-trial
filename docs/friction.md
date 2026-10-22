@@ -10,7 +10,7 @@ hono-kit の決まりで書いていて、引っかかったところの記録�
 
 （docs を読んでも答えが無かった、docs と実物が食い違った、lint や型に止められて直し方が分からなかった）
 
-- **`route-lists-are-paged` が `GET /me/profile` を一覧と見なす。** lint は「パスが `[id]` で終わるなら 1 件」で見分けるので、1 人に 1 つしか無いリソース（`/me/profile`）が一覧に入る。返すのは 1 件で、ページにする意味が無い。AGENTS.md が唯一許している理由つきの `oxlint-disable-next-line` で避けた（`src/routes/me/profile/index.ts`）
+- **`route-lists-are-paged` が `GET /me/profile` を一覧と見なす。** lint は「パスが `[id]` で終わるなら 1 件」で見分けるので、1 人に 1 つしか無いリソース（`/me/profile`）が一覧に入る。返すのは 1 件で、ページにする意味が無い。AGENTS.md が唯一許している理由つきの `oxlint-disable-next-line` で避けた（`src/routes/me/profile/index.ts`）。→ 上限を付けるかは運用の判断（ナレッジ）で hono-kit のルールではない、として hono-kit の main でこの lint を外した。disable の行も消した
 - **誰でも読めるが、ログイン中なら少し多く見せる読みの guard が無い。** `GET /articles/:id` は、公開中なら誰でも、下書きは著者だけが読める。`allowAnonymous` の後では `actor` が無く、env.ts は `user` を「handler は読まない」としている。アプリに `allowAnyone`（`c.get("viewer")` が `User | null`）を足した（`src/middleware/auth.ts`）。窓も `articlesWithin(db, viewer: User | null)` で、docs の「窓は actor を取る」の actor ではない値を取っている
 - **404 と 403 を分けると、読みの範囲と書きの範囲が一致しない。** cross-domain.md は「範囲は読みと書きで同じ」、rules.md は「見えるが触れないものは FORBIDDEN」。403 が出るアプリでは、見える範囲（公開中＋自分の下書き）が触れる範囲（自分の記事）より必ず広いので、2 つが食い違って読める。rules.md・state.md・cross-domain.md を読み合わせて、「`find(reach)` → `mayChange` で FORBIDDEN → 同じ `reach` で `update` / `delete` / `transition`」と書いた（`src/domains/articles/service.ts`）。許可は `may…` が決め、`authorId` は変わらないので、確認と書き込みの間に割り込まれても他人の記事は書けない。答えは docs から組み立てられたが、3 ページにまたがっていて、1 文あれば迷わない
 - **親を消したら子も消える、の書き方が無い。** 記事を消すとコメントも消える。cross-domain.md の「親の下にぶら下がるもの」は子の作り方だけで、親を消すときを書いていない。記事の repo はコメントの表に書けないので、コメントの表の外部キーに `onDelete: "cascade"` を付けた（`src/domains/comments/repo.d1.ts`）。子の domain が自分の表で「親と一緒に消える」と宣言するので、「他の domain の表に書かない」とはぶつからないと判断した。D1 が外部キーを守ることは `test/article-delete.test.ts` で確かめた

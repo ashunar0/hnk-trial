@@ -6,7 +6,6 @@ import { requireAuth } from "#src/middleware/auth";
 import { profileInputSchema } from "#src/domains/profiles/model";
 import { profileResponse, profileResponseSchema } from "./_response";
 
-// oxlint-disable-next-line hnk/route-lists-are-paged -- one profile per person, not a list (/me/profile has no [id])
 export const GET = createEndpoint(
   {
     middleware: [requireAuth],
