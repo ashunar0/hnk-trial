@@ -1,0 +1,46 @@
+import { env } from "cloudflare:workers";
+import { wireDb } from "#src/db/index";
+import { buildApp } from "#src/index";
+import { makeDeps } from "#src/deps";
+import { authenticatedUser, orgId, userId, type User } from "#src/domains/users/model";
+
+export const db = () => wireDb(env.DB);
+
+export const alice = authenticatedUser(userId("alice"), orgId("org1"), "member");
+export const bob = authenticatedUser(userId("bob"), orgId("org1"), "member");
+export const admin = authenticatedUser(userId("admin"), orgId("org1"), "admin");
+/** Someone in another organization */
+export const carol = authenticatedUser(userId("carol"), orgId("org2"), "member");
+
+/**
+ * The app, signed in as this user (real deps and D1).
+ * null means signed out. Instead of an auth provider it just sets the session user; everything else is as in production.
+ * at fixes c.get("now") (the real clock when omitted)
+ */
+export const appAs = (user: User | null, at?: Date) =>
+  buildApp(
+    makeDeps,
+    async (c, next) => {
+      c.set("user", user);
+      await next();
+    },
+    at ? () => at : undefined,
+  );
+
+/** Send JSON through appAs. env points to the real D1. at fixes the request's now */
+export const request = (
+  user: User | null,
+  method: string,
+  path: string,
+  body?: unknown,
+  at?: Date,
+) =>
+  appAs(user, at).request(
+    path,
+    {
+      method,
+      headers: body === undefined ? {} : { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    },
+    env,
+  );
