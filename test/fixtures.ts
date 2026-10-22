@@ -2,15 +2,13 @@ import { env } from "cloudflare:workers";
 import { wireDb } from "#src/db/index";
 import { buildApp } from "#src/index";
 import { makeDeps } from "#src/deps";
-import { authenticatedUser, orgId, userId, type User } from "#src/domains/users/model";
+import { authenticatedUser, type User } from "#src/domains/users/model";
 
 export const db = () => wireDb(env.DB);
 
-export const alice = authenticatedUser(userId("alice"), orgId("org1"), "member");
-export const bob = authenticatedUser(userId("bob"), orgId("org1"), "member");
-export const admin = authenticatedUser(userId("admin"), orgId("org1"), "admin");
-/** Someone in another organization */
-export const carol = authenticatedUser(userId("carol"), orgId("org2"), "member");
+/** Registers a user through the users service and returns it signed in. Every test makes its own, so tests do not meet */
+export const signUp = async (name = "someone") =>
+  authenticatedUser(await makeDeps(env).users.create({ name }, new Date()));
 
 /**
  * The app, signed in as this user (real deps and D1).
@@ -44,3 +42,26 @@ export const request = (
     },
     env,
   );
+
+/** Writes a draft as `author` and returns its ID */
+export const writeDraft = async (author: User, title = "title", body = "body") => {
+  const res = await request(author, "POST", "/articles", { title, body });
+  const json = (await res.json()) as { id: string };
+
+  return json.id;
+};
+
+/** Writes an article as `author` and publishes it at `at`. Returns its ID */
+export const writePublished = async (author: User, at = new Date(), title = "title") => {
+  const id = await writeDraft(author, title);
+  await request(author, "POST", `/articles/${id}/publish`, undefined, at);
+
+  return id;
+};
+
+/** The error code of a failure response */
+export const codeOf = async (res: Response) => {
+  const json = (await res.json()) as { error: { code: string } };
+
+  return json.error.code;
+};

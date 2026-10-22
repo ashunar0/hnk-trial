@@ -15,7 +15,7 @@ import { registerRoutes } from "./routes.gen";
  */
 export const buildApp = (
   makeDeps: (env: AppEnv["Bindings"]) => Deps,
-  authenticate: MiddlewareHandler<AppEnv> = withUser,
+  authenticate: MiddlewareHandler<AppEnv> = withUser(makeDeps),
   clock: () => Date = () => new Date(),
 ) => {
   const app = createApp()
