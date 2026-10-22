@@ -1,17 +1,18 @@
 import { createMiddleware } from "hono/factory";
 import type { MiddlewareHandler } from "hono";
 import type { AppEnv, AuthVariables } from "#src/env";
-import type { Role, User } from "#src/domains/users/model";
-import { fail, Forbidden, guard, Unauthorized } from "hono-kit";
+import { authenticatedUser, userId, type User } from "#src/domains/users/model";
+import { fail, guard, Unauthorized } from "hono-kit";
 
 /**
  * Sets the session user in the context. Lets signed-out requests through.
  *
- * TODO: once domains/auth/ decodes the cookie session,
- * set its result here. Until there is an auth provider, this is always null
+ * Provisional (docs/api.md): the ID in the x-user-id header is trusted as a verified session.
+ * Replace this with the auth provider's session when it arrives
  */
 export const withUser: MiddlewareHandler<AppEnv> = async (c, next) => {
-  c.set("user", null);
+  const id = c.req.header("x-user-id");
+  c.set("user", id ? authenticatedUser(userId(id)) : null);
   await next();
 };
 
@@ -34,27 +35,6 @@ export const requireAuth = guard(
 );
 
 /**
- * Requires sign-in as one of these roles. For a permission the role alone decides
- * (only an admin adds a member). When the rule needs the row (the author or an admin),
- * use requireAuth and decide it in service, all of it in one place.
- * Unauthorized and Forbidden are added to responses automatically
- */
-export const requireRole = (...roles: Role[]) =>
-  guard(
-    [Unauthorized, Forbidden],
-    createMiddleware<{
-      Variables: AuthVariables & { actor: User };
-    }>(async (c, next) => {
-      const user = c.get("user");
-      if (user === null) throw fail(Unauthorized);
-      if (!roles.includes(user.role)) throw fail(Forbidden);
-
-      c.set("actor", user);
-      await next();
-    }),
-  );
-
-/**
  * Says explicitly that no auth is required. Does nothing.
  *
  * It exists so every endpoint declares exactly one auth guard. It separates forgetting from
@@ -62,3 +42,15 @@ export const requireRole = (...roles: Role[]) =>
  * every unauthenticated endpoint in this app
  */
 export const allowAnonymous: MiddlewareHandler<AppEnv> = (_c, next) => next();
+
+/**
+ * Public, but tells who is looking: in the handler after it, c.get("viewer") is the signed-in User, or null.
+ * For a read where everyone sees something and the signed-in see a little more (their own drafts).
+ * It never fails, so it adds nothing to responses
+ */
+export const allowAnyone = createMiddleware<{
+  Variables: AuthVariables & { viewer: User | null };
+}>(async (c, next) => {
+  c.set("viewer", c.get("user"));
+  await next();
+});
