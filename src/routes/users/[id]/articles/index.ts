@@ -19,7 +19,7 @@ import {
 
 export const GET = createEndpoint(
   {
-    middleware: [allowAnonymous],
+    auth: allowAnonymous,
     request: { param: z.object({ id: userIdSchema }), query: pageQuerySchema() },
     responses: {
       200: pageResponseSchema(articleSummaryResponseSchema),

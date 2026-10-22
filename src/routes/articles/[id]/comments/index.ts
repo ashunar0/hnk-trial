@@ -20,7 +20,7 @@ const param = z.object({ id: articleIdSchema });
 
 export const GET = createEndpoint(
   {
-    middleware: [allowAnonymous],
+    auth: allowAnonymous,
     request: { param, query: pageQuerySchema() },
     responses: { 200: pageResponseSchema(commentResponseSchema), ...errorResponses(NotFound) },
   },
@@ -39,7 +39,7 @@ export const GET = createEndpoint(
 
 export const POST = createEndpoint(
   {
-    middleware: [requireAuth],
+    auth: requireAuth,
     request: { param, json: commentInputSchema },
     responses: { 200: commentResponseSchema, ...errorResponses(NotFound, ProfileRequired) },
   },

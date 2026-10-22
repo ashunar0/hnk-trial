@@ -9,7 +9,7 @@ import { articleResponse, articleResponseSchema } from "../../_response";
 
 export const POST = createEndpoint(
   {
-    middleware: [requireAuth],
+    auth: requireAuth,
     request: { param: z.object({ id: articleIdSchema }) },
     responses: { 200: articleResponseSchema, ...errorResponses(NotFound, Forbidden, NotPublished) },
   },

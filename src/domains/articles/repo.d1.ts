@@ -60,14 +60,14 @@ const within = (reach: ArticleReach) => {
 };
 
 /**
- * The window every outside read of articles goes through: published ones, and the viewer's own drafts.
+ * The window every outside read of articles goes through: published ones, and the actor's own drafts.
  * null is someone signed out, who sees only published ones
  */
-export const articlesWithin = (db: ReadDb, viewer: User | null) =>
+export const articlesWithin = (db: ReadDb, actor: User | null) =>
   db
     .select()
     .from(articlesTable)
-    .where(within(reachOf(viewer)))
+    .where(within(reachOf(actor)))
     .as("articles_within");
 
 export function articlesRepository(scope: Scope<typeof articlesTable>): ArticlesRepository {

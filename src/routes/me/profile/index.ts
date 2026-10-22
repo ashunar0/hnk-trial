@@ -8,7 +8,7 @@ import { profileResponse, profileResponseSchema } from "./_response";
 
 export const GET = createEndpoint(
   {
-    middleware: [requireAuth],
+    auth: requireAuth,
     responses: { 200: profileResponseSchema, ...errorResponses(NotFound) },
   },
   async (c, reply, { profileQueries }) => {
@@ -22,7 +22,7 @@ export const GET = createEndpoint(
 /** Creates it, or changes the name */
 export const PUT = createEndpoint(
   {
-    middleware: [requireAuth],
+    auth: requireAuth,
     request: { json: profileInputSchema },
     responses: { 200: profileResponseSchema },
   },

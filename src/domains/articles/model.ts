@@ -75,8 +75,8 @@ export const NotPublished = {
 export type ArticleReach = { kind: "published" } | { kind: "publishedOrOwn"; userId: string };
 
 /** null is someone signed out */
-export const reachOf = (viewer: User | null): ArticleReach =>
-  viewer === null ? { kind: "published" } : { kind: "publishedOrOwn", userId: viewer.id };
+export const reachOf = (actor: User | null): ArticleReach =>
+  actor === null ? { kind: "published" } : { kind: "publishedOrOwn", userId: actor.id };
 
 /** Only the author changes, deletes, publishes or unpublishes an article */
 export const mayChange = (actor: User, article: Pick<Article, "authorId">) =>

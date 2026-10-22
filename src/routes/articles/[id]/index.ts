@@ -11,12 +11,12 @@ const param = z.object({ id: articleIdSchema });
 
 export const GET = createEndpoint(
   {
-    middleware: [allowAnyone],
+    auth: allowAnyone,
     request: { param },
     responses: { 200: articleResponseSchema, ...errorResponses(NotFound) },
   },
   async (c, reply, { articlesQueries }) => {
-    const article = await articlesQueries.get(c.get("viewer"), c.req.valid("param").id);
+    const article = await articlesQueries.get(c.get("actor"), c.req.valid("param").id);
     if (article === null) return reply.failure(NotFound.code);
 
     return reply(200, articleResponse(article));
@@ -26,7 +26,7 @@ export const GET = createEndpoint(
 /** Replaces the title and body, draft or published */
 export const PUT = createEndpoint(
   {
-    middleware: [requireAuth],
+    auth: requireAuth,
     request: { param, json: articleInputSchema },
     responses: { 200: articleResponseSchema, ...errorResponses(NotFound, Forbidden) },
   },
@@ -47,7 +47,7 @@ export const PUT = createEndpoint(
 /** Its comments go with it */
 export const DELETE = createEndpoint(
   {
-    middleware: [requireAuth],
+    auth: requireAuth,
     request: { param },
     responses: { 200: z.object({ ok: z.literal(true) }), ...errorResponses(NotFound, Forbidden) },
   },

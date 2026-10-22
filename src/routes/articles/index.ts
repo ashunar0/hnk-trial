@@ -19,7 +19,7 @@ import {
 
 export const GET = createEndpoint(
   {
-    middleware: [allowAnonymous],
+    auth: allowAnonymous,
     request: { query: pageQuerySchema() },
     responses: { 200: pageResponseSchema(articleSummaryResponseSchema) },
   },
@@ -32,7 +32,7 @@ export const GET = createEndpoint(
 
 export const POST = createEndpoint(
   {
-    middleware: [requireAuth],
+    auth: requireAuth,
     request: { json: articleInputSchema },
     responses: { 200: articleResponseSchema, ...errorResponses(ProfileRequired) },
   },

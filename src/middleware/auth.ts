@@ -44,13 +44,13 @@ export const requireAuth = guard(
 export const allowAnonymous: MiddlewareHandler<AppEnv> = (_c, next) => next();
 
 /**
- * Public, but tells who is looking: in the handler after it, c.get("viewer") is the signed-in User, or null.
+ * Public, but tells who is looking: in the handler after it, actor is the signed-in User, or null.
  * For a read where everyone sees something and the signed-in see a little more (their own drafts).
  * It never fails, so it adds nothing to responses
  */
 export const allowAnyone = createMiddleware<{
-  Variables: AuthVariables & { viewer: User | null };
+  Variables: AuthVariables & { actor: User | null };
 }>(async (c, next) => {
-  c.set("viewer", c.get("user"));
+  c.set("actor", c.get("user"));
   await next();
 });

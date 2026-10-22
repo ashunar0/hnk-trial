@@ -7,7 +7,7 @@ import { myArticleResponse, myArticleResponseSchema } from "./_response";
 
 export const GET = createEndpoint(
   {
-    middleware: [requireAuth],
+    auth: requireAuth,
     request: { query: pageQuerySchema() },
     responses: { 200: pageResponseSchema(myArticleResponseSchema) },
   },

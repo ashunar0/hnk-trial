@@ -44,8 +44,8 @@ const summaries = (db: ReadDb) => {
   return { articles, query };
 };
 
-const details = (db: ReadDb, viewer: User | null) => {
-  const articles = articlesWithin(db, viewer);
+const details = (db: ReadDb, actor: User | null) => {
+  const articles = articlesWithin(db, actor);
   const { authors, counts, author, commentCount } = extras(db);
   const query = db
     .select({
@@ -98,9 +98,9 @@ export function articlesQueries(db: ReadDb) {
       return toPage(rows, limit, (row) => ({ at: publishedAtOf(row), id: row.id }));
     },
 
-    /** null if the viewer does not see it (someone else's draft is as absent as a missing one) */
-    async get(viewer: User | null, id: ArticleId): Promise<ArticleRow | null> {
-      const { articles, query } = details(db, viewer);
+    /** null if the actor does not see it (someone else's draft is as absent as a missing one) */
+    async get(actor: User | null, id: ArticleId): Promise<ArticleRow | null> {
+      const { articles, query } = details(db, actor);
       const [row] = await query.where(eq(articles.id, id)).limit(1);
 
       return row ?? null;
