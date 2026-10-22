@@ -3,7 +3,7 @@
  */
 import { err, ok, type Result } from "hono-kit/result";
 import { NotFound } from "hono-kit/failures";
-import type { User } from "#src/domains/users/model";
+import type { Account } from "#src/domains/accounts/model";
 import type { Profile, ProfileInput } from "./model";
 
 /**
@@ -24,7 +24,7 @@ export type ProfilesRepository = {
 export function profilesService(repo: ProfilesRepository) {
   return {
     /** The actor's own profile. NOT_FOUND until they save one */
-    async get(actor: User): Promise<Result<Profile, typeof NotFound.code>> {
+    async get(actor: Account): Promise<Result<Profile, typeof NotFound.code>> {
       const found = await repo.find(actor.id);
       if (found === null) return err(NotFound.code);
 
@@ -32,7 +32,7 @@ export function profilesService(repo: ProfilesRepository) {
     },
 
     /** Creates or changes the actor's own profile. Nobody else's can be named */
-    async save(actor: User, input: ProfileInput, now: Date): Promise<void> {
+    async save(actor: Account, input: ProfileInput, now: Date): Promise<void> {
       await repo.save(actor.id, input.name, now);
     },
   };

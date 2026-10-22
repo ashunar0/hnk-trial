@@ -10,7 +10,7 @@ import { publishedAtOf, type ArticleId } from "#src/domains/articles/model";
 import { articlesWithin } from "#src/domains/articles/repo.d1";
 import { commentCountByArticleWithin } from "#src/domains/comments/repo.d1";
 import { profilesWithin } from "#src/domains/profiles/repo.d1";
-import type { User } from "#src/domains/users/model";
+import type { Account } from "#src/domains/accounts/model";
 
 /** The author and comment count every article shows */
 const extras = (db: ReadDb) => {
@@ -44,7 +44,7 @@ const summaries = (db: ReadDb) => {
   return { articles, query };
 };
 
-const details = (db: ReadDb, actor: User | null) => {
+const details = (db: ReadDb, actor: Account | null) => {
   const articles = articlesWithin(db, actor);
   const { authors, counts, author, commentCount } = extras(db);
   const query = db
@@ -99,7 +99,7 @@ export function articlesQueries(db: ReadDb) {
     },
 
     /** null if the actor does not see it (someone else's draft is as absent as a missing one) */
-    async get(actor: User | null, id: ArticleId): Promise<ArticleRow | null> {
+    async get(actor: Account | null, id: ArticleId): Promise<ArticleRow | null> {
       const { articles, query } = details(db, actor);
       const [row] = await query.where(eq(articles.id, id)).limit(1);
 

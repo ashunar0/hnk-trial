@@ -3,7 +3,7 @@
  */
 import { err, ok, type Result } from "hono-kit/result";
 import { Forbidden, NotFound } from "hono-kit/failures";
-import type { User } from "#src/domains/users/model";
+import type { Account } from "#src/domains/accounts/model";
 import {
   AlreadyPublished,
   mayChange,
@@ -60,7 +60,7 @@ type NotFoundOrForbidden = typeof NotFound.code | typeof Forbidden.code;
 export function articlesService(repo: ArticlesRepository) {
   /** NOT_FOUND when the actor does not see it, FORBIDDEN when they see it but are not the author */
   const findChangeable = async (
-    actor: User,
+    actor: Account,
     id: ArticleId,
   ): Promise<Result<Article, NotFoundOrForbidden>> => {
     const found = await repo.find(reachOf(actor), id);
@@ -81,7 +81,7 @@ export function articlesService(repo: ArticlesRepository) {
 
     /** Every article starts as a draft */
     async create(
-      actor: User,
+      actor: Account,
       { profile }: Authoring,
       input: ArticleInput,
       now: Date,
@@ -105,7 +105,7 @@ export function articlesService(repo: ArticlesRepository) {
     },
 
     async update(
-      actor: User,
+      actor: Account,
       id: ArticleId,
       input: ArticleInput,
       now: Date,
@@ -120,7 +120,7 @@ export function articlesService(repo: ArticlesRepository) {
       return ok(undefined);
     },
 
-    async remove(actor: User, id: ArticleId): Promise<Result<void, NotFoundOrForbidden>> {
+    async remove(actor: Account, id: ArticleId): Promise<Result<void, NotFoundOrForbidden>> {
       const found = await findChangeable(actor, id);
       if (!found.ok) return found;
 
@@ -130,7 +130,7 @@ export function articlesService(repo: ArticlesRepository) {
     },
 
     async publish(
-      actor: User,
+      actor: Account,
       id: ArticleId,
       now: Date,
     ): Promise<Result<void, NotFoundOrForbidden | typeof AlreadyPublished.code>> {
@@ -150,7 +150,7 @@ export function articlesService(repo: ArticlesRepository) {
     },
 
     async unpublish(
-      actor: User,
+      actor: Account,
       id: ArticleId,
       now: Date,
     ): Promise<Result<void, NotFoundOrForbidden | typeof NotPublished.code>> {

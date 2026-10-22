@@ -5,9 +5,9 @@ import { and, desc, eq, lt, or } from "drizzle-orm";
 import { toPage, type Page, type PageQuery } from "hono-kit/page";
 import type { ReadDb } from "#src/db/index";
 import { articlesWithin } from "#src/domains/articles/repo.d1";
-import type { User } from "#src/domains/users/model";
+import type { Account } from "#src/domains/accounts/model";
 
-const seen = (db: ReadDb, actor: User) => {
+const seen = (db: ReadDb, actor: Account) => {
   const articles = articlesWithin(db, actor);
   const query = db
     .select({
@@ -29,7 +29,7 @@ export type MyArticleRow = Awaited<ReturnType<typeof seen>["query"]>[number];
 export function myArticlesQueries(db: ReadDb) {
   return {
     /** The actor's articles, the latest created first */
-    async list(actor: User, { after, limit }: PageQuery): Promise<Page<MyArticleRow>> {
+    async list(actor: Account, { after, limit }: PageQuery): Promise<Page<MyArticleRow>> {
       const { articles, query } = seen(db, actor);
       const rows = await query
         .where(

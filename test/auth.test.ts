@@ -1,5 +1,5 @@
 /**
- * The provisional sign-in: the real withUser, not the fixtures' stand-in
+ * The provisional sign-in: the real withAccount, not the fixtures' stand-in
  */
 import { env } from "cloudflare:workers";
 import { expect, it } from "vitest";

@@ -2,29 +2,29 @@ import { env } from "cloudflare:workers";
 import { wireDb } from "#src/db/index";
 import { buildApp } from "#src/index";
 import { makeDeps } from "#src/deps";
-import { authenticatedUser, userId, type User } from "#src/domains/users/model";
+import { authenticatedAccount, accountId, type Account } from "#src/domains/accounts/model";
 
 export const db = () => wireDb(env.DB);
 
-export const alice = authenticatedUser(userId("alice"));
-export const bob = authenticatedUser(userId("bob"));
+export const alice = authenticatedAccount(accountId("alice"));
+export const bob = authenticatedAccount(accountId("bob"));
 
 /**
  * Someone new each call. Tests in one file share the D1, so alice and bob keep what an earlier test saved;
  * use this for someone who must have nothing yet (no profile)
  */
-export const someone = () => authenticatedUser(userId(crypto.randomUUID()));
+export const someone = () => authenticatedAccount(accountId(crypto.randomUUID()));
 
 /**
  * The app, signed in as this user (real deps and D1).
  * null means signed out. Instead of an auth provider it just sets the session user; everything else is as in production.
  * at fixes c.get("now") (the real clock when omitted)
  */
-export const appAs = (user: User | null, at?: Date) =>
+export const appAs = (account: Account | null, at?: Date) =>
   buildApp(
     makeDeps,
     async (c, next) => {
-      c.set("user", user);
+      c.set("account", account);
       await next();
     },
     at ? () => at : undefined,
@@ -32,13 +32,13 @@ export const appAs = (user: User | null, at?: Date) =>
 
 /** Send JSON through appAs. env points to the real D1. at fixes the request's now */
 export const request = (
-  user: User | null,
+  account: Account | null,
   method: string,
   path: string,
   body?: unknown,
   at?: Date,
 ) =>
-  appAs(user, at).request(
+  appAs(account, at).request(
     path,
     {
       method,
@@ -59,15 +59,15 @@ const ok = async (res: Response) => {
 };
 
 /** Saves the user's profile (the name defaults to their ID) */
-export const signUp = async (user: User, name: string = user.id) =>
+export const signUp = async (user: Account, name: string = user.id) =>
   ok(await request(user, "PUT", "/me/profile", { name }));
 
 /** A draft by the user. Returns its ID */
-export const writeDraft = async (user: User, title = "title", when?: Date) =>
+export const writeDraft = async (user: Account, title = "title", when?: Date) =>
   (await ok(await request(user, "POST", "/articles", { title, body: "body" }, when))).id;
 
 /** A published article by the user. Returns its ID */
-export const writePublished = async (user: User, title = "title", when?: Date) => {
+export const writePublished = async (user: Account, title = "title", when?: Date) => {
   const id = await writeDraft(user, title, when);
   await ok(await request(user, "POST", `/articles/${id}/publish`, undefined, when));
 

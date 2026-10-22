@@ -11,7 +11,7 @@ import {
 } from "hono-kit";
 import { z } from "zod";
 import { allowAnonymous } from "#src/middleware/auth";
-import { userIdSchema } from "#src/domains/users/model";
+import { accountIdSchema } from "#src/domains/accounts/model";
 import {
   articleSummaryResponse,
   articleSummaryResponseSchema,
@@ -20,7 +20,7 @@ import {
 export const GET = createEndpoint(
   {
     auth: allowAnonymous,
-    request: { param: z.object({ id: userIdSchema }), query: pageQuerySchema() },
+    request: { param: z.object({ id: accountIdSchema }), query: pageQuerySchema() },
     responses: {
       200: pageResponseSchema(articleSummaryResponseSchema),
       ...errorResponses(NotFound),

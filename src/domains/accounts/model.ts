@@ -12,35 +12,35 @@ import type { System } from "hono-kit/system";
  * The brand for user IDs. Mixing one up with a plain string is a type error.
  * Only userId below may apply the brand
  */
-declare const userIdBrand: unique symbol;
+declare const accountIdBrand: unique symbol;
 
-export type UserId = string & { readonly [userIdBrand]: true };
+export type AccountId = string & { readonly [accountIdBrand]: true };
 
 /** Brands a string from outside or from the DB as a user ID. The only place that writes `as` */
-export const userId = (value: string) => value as UserId;
+export const accountId = (value: string) => value as AccountId;
 
 /** A user ID in the input (URL). Branded once it passes validation */
-export const userIdSchema = z.string().min(1).transform(userId);
+export const accountIdSchema = z.string().min(1).transform(accountId);
 
 /**
  * The brand. Its name is invisible outside this file, so a literal like `{ kind: "system" }`
- * cannot produce a branded value. Only authenticatedUser below can create one
+ * cannot produce a branded value. Only authenticatedAccount below can create one
  */
 declare const verified: unique symbol;
 
 /** A signed-in user. Created only after authentication */
-export type User = {
-  readonly kind: "user";
-  readonly id: UserId;
+export type Account = {
+  readonly kind: "account";
+  readonly id: AccountId;
   readonly [verified]: true;
 };
 
 /** Creates an authenticated user. Called only by the auth middleware (and tests) */
-export const authenticatedUser = (id: UserId) => ({ kind: "user", id }) as User;
+export const authenticatedAccount = (id: AccountId) => ({ kind: "account", id }) as Account;
 
 /**
  * Who is acting right now: a user or the system.
  * Over HTTP the guard (requireAuth, allowSystem) puts it in c.get("actor"); for cron and queues, createWorker passes it.
  * A service always takes "acting as whom" as its first argument
  */
-export type Actor = User | System;
+export type Actor = Account | System;

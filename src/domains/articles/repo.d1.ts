@@ -6,7 +6,7 @@ import { and, eq, or, sql } from "drizzle-orm";
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import type { ReadDb, Scope } from "#src/db/index";
 import { profilesTable } from "#src/domains/profiles/repo.d1";
-import type { User } from "#src/domains/users/model";
+import type { Account } from "#src/domains/accounts/model";
 import { articleId, articleStatuses, reachOf, type Article, type ArticleReach } from "./model";
 import type { ArticlesRepository } from "./service";
 
@@ -63,7 +63,7 @@ const within = (reach: ArticleReach) => {
  * The window every outside read of articles goes through: published ones, and the actor's own drafts.
  * null is someone signed out, who sees only published ones
  */
-export const articlesWithin = (db: ReadDb, actor: User | null) =>
+export const articlesWithin = (db: ReadDb, actor: Account | null) =>
   db
     .select()
     .from(articlesTable)

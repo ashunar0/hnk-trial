@@ -4,7 +4,7 @@
  * Written as a draft, then published; publishing can be taken back, which makes it a draft again
  */
 import { z } from "zod";
-import type { User } from "#src/domains/users/model";
+import type { Account } from "#src/domains/accounts/model";
 
 /**
  * The article ID. A brand to tell it apart from a plain string.
@@ -75,11 +75,11 @@ export const NotPublished = {
 export type ArticleReach = { kind: "published" } | { kind: "publishedOrOwn"; userId: string };
 
 /** null is someone signed out */
-export const reachOf = (actor: User | null): ArticleReach =>
+export const reachOf = (actor: Account | null): ArticleReach =>
   actor === null ? { kind: "published" } : { kind: "publishedOrOwn", userId: actor.id };
 
 /** Only the author changes, deletes, publishes or unpublishes an article */
-export const mayChange = (actor: User, article: Pick<Article, "authorId">) =>
+export const mayChange = (actor: Account, article: Pick<Article, "authorId">) =>
   article.authorId === actor.id;
 
 /** A published article always has publishedAt; only a draft has none */

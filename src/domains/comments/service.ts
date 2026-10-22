@@ -2,7 +2,7 @@
  * The steps for comments (How). What to do with the domain thing, in what order
  */
 import { err, ok, type Result } from "hono-kit/result";
-import type { User } from "#src/domains/users/model";
+import type { Account } from "#src/domains/accounts/model";
 import {
   newCommentId,
   ProfileRequired,
@@ -35,7 +35,7 @@ export type Commenting = {
 export function commentsService(repo: CommentsRepository) {
   return {
     async create(
-      actor: User,
+      actor: Account,
       { article, profile }: Commenting,
       input: CommentInput,
       now: Date,
