@@ -1,0 +1,27 @@
+import { z } from "zod";
+import { createEndpoint, errorResponses, Forbidden, NotFound } from "hono-kit";
+import { NotPublished, articleIdSchema } from "#src/domains/articles/model";
+import { requireAuth } from "#src/middleware/auth";
+import { articleResponse, articleResponseSchema } from "../../_response";
+
+/** POST /articles/:id/unpublish: Takes a published article back to a draft. Only the author */
+export const POST = createEndpoint(
+  {
+    middleware: [requireAuth],
+    request: { param: z.object({ id: articleIdSchema }) },
+    responses: { 200: articleResponseSchema, ...errorResponses(NotFound, Forbidden, NotPublished) },
+  },
+  async (c, reply, { articles, articlesQueries }) => {
+    const actor = c.get("actor");
+    const { id } = c.req.valid("param");
+    const now = c.get("now");
+
+    const result = await articles.unpublish(actor, id, now);
+    if (!result.ok) return reply.failure(result.error);
+
+    const article = await articlesQueries.get(actor, id);
+    if (article === null) throw new Error(`article ${id} is gone right after the write`);
+
+    return reply(200, articleResponse(article));
+  },
+);
