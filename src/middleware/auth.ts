@@ -35,13 +35,16 @@ export const requireAuth = guard(
 );
 
 /**
- * Says explicitly that no auth is required. Does nothing.
+ * Says explicitly that no auth is required. Lets everyone through, and actor is null (whoever it is).
  *
  * It exists so every endpoint declares exactly one auth guard. It separates forgetting from
  * "meant to be public", which would otherwise look the same. grep it to list
  * every unauthenticated endpoint in this app
  */
-export const allowAnonymous: MiddlewareHandler<AppEnv> = (_c, next) => next();
+export const allowAnonymous = createMiddleware<{ Variables: { actor: null } }>(async (c, next) => {
+  c.set("actor", null);
+  await next();
+});
 
 /**
  * Public, but tells who is looking: in the handler after it, actor is the signed-in Account, or null.
