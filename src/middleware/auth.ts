@@ -1,8 +1,8 @@
 import { createMiddleware } from "hono/factory";
 import type { MiddlewareHandler } from "hono";
 import type { AppEnv, AuthVariables } from "#src/env";
-import type { Role, Account } from "#src/domains/accounts/model";
-import { fail, Forbidden, guard, Unauthorized } from "hono-kit";
+import { accountId, authenticatedAccount, type Account } from "#src/domains/accounts/model";
+import { fail, guard, Unauthorized } from "hono-kit";
 
 /**
  * The auth of this app. Rewrite these for your auth stack (how the session is read, what an Account holds,
@@ -10,11 +10,12 @@ import { fail, Forbidden, guard, Unauthorized } from "hono-kit";
  *
  * withAccount sets the session's account in the context (null when signed out). Lets signed-out requests through.
  *
- * TODO: once domains/auth/ decodes the cookie session,
- * set its result here. Until there is an auth provider, this is always null
+ * Provisional auth: the x-user-id header is trusted as the signed-in account's ID (docs/api.md).
+ * No header (or an empty one) means signed out. Replace with the real auth provider later
  */
 export const withAccount: MiddlewareHandler<AppEnv> = async (c, next) => {
-  c.set("account", null);
+  const header = c.req.header("x-user-id");
+  c.set("account", header ? authenticatedAccount(accountId(header)) : null);
   await next();
 };
 
@@ -37,25 +38,15 @@ export const requireAuth = guard(
 );
 
 /**
- * Requires sign-in as one of these roles. For a permission the role alone decides
- * (only an admin adds a member). When the rule needs the row (the author or an admin),
- * use requireAuth and decide it in service, all of it in one place.
- * Unauthorized and Forbidden are added to responses automatically
+ * For a public endpoint that shows the signed-in a little more (their own drafts).
+ * Lets everyone through; actor is the Account, or null when signed out
  */
-export const requireRole = (...roles: Role[]) =>
-  guard(
-    [Unauthorized, Forbidden],
-    createMiddleware<{
-      Variables: AuthVariables & { actor: Account };
-    }>(async (c, next) => {
-      const account = c.get("account");
-      if (account === null) throw fail(Unauthorized);
-      if (!roles.includes(account.role)) throw fail(Forbidden);
-
-      c.set("actor", account);
-      await next();
-    }),
-  );
+export const allowAnyone = createMiddleware<{
+  Variables: AuthVariables & { actor: Account | null };
+}>(async (c, next) => {
+  c.set("actor", c.get("account"));
+  await next();
+});
 
 /**
  * Says explicitly that no auth is required. Lets everyone through, and actor is null (whoever it is).

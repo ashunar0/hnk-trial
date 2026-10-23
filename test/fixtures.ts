@@ -2,15 +2,13 @@ import { env } from "cloudflare:workers";
 import { wireDb } from "#src/db/index";
 import { buildApp } from "#src/index";
 import { makeDeps } from "#src/deps";
-import { authenticatedAccount, orgId, accountId, type Account } from "#src/domains/accounts/model";
+import { authenticatedAccount, accountId, type Account } from "#src/domains/accounts/model";
 
 export const db = () => wireDb(env.DB);
 
-export const alice = authenticatedAccount(accountId("alice"), orgId("org1"), "member");
-export const bob = authenticatedAccount(accountId("bob"), orgId("org1"), "member");
-export const admin = authenticatedAccount(accountId("admin"), orgId("org1"), "admin");
-/** Someone in another organization */
-export const carol = authenticatedAccount(accountId("carol"), orgId("org2"), "member");
+export const alice = authenticatedAccount(accountId("alice"));
+export const bob = authenticatedAccount(accountId("bob"));
+export const carol = authenticatedAccount(accountId("carol"));
 
 /**
  * The app, signed in as this account (real deps and D1).
@@ -44,3 +42,42 @@ export const request = (
     },
     env,
   );
+
+/** A new person with a name nobody else has, so tests do not meet each other's rows */
+export const person = (name: string) =>
+  authenticatedAccount(accountId(`${name}-${crypto.randomUUID()}`));
+
+/** A new person who already has a profile (displayName = name) */
+export const personWithProfile = async (name: string) => {
+  const account = person(name);
+  const res = await request(account, "PUT", "/me/profile", { displayName: name });
+  if (res.status !== 200) throw new Error(`could not make a profile: ${res.status}`);
+
+  return account;
+};
+
+/** Writes an article as this person and returns its ID. publishAt publishes it at that time */
+export const writeArticle = async (
+  account: Account,
+  input: { title?: string; body?: string } = {},
+  publishAt?: Date,
+) => {
+  const res = await request(account, "POST", "/articles", {
+    title: input.title ?? "title",
+    body: input.body ?? "body",
+  });
+  if (res.status !== 200) throw new Error(`could not write an article: ${res.status}`);
+  const { id } = (await res.json()) as { id: string };
+  if (publishAt !== undefined) {
+    const published = await request(
+      account,
+      "POST",
+      `/articles/${id}/publish`,
+      undefined,
+      publishAt,
+    );
+    if (published.status !== 200) throw new Error(`could not publish: ${published.status}`);
+  }
+
+  return id;
+};
