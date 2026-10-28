@@ -30,7 +30,7 @@ export const GET = createEndpoint(
 
     const page = await commentsQueries.list(id, query);
 
-    return reply(200, pageResponse(page, commentResponse));
+    return reply.success(pageResponse(page, commentResponse));
   },
 );
 
@@ -59,6 +59,6 @@ export const POST = createEndpoint(
     const comment = await commentsQueries.get(created.value);
     if (comment === null) throw new Error(`comment ${created.value} is gone right after the write`);
 
-    return reply(200, commentResponse(comment));
+    return reply.success(commentResponse(comment));
   },
 );

@@ -5,8 +5,8 @@
 import { spawnSync } from "node:child_process";
 
 const steps = [
-  // With a stale routes.gen.ts, types and tests see old routes. On CI (CI is set) only compare, so a stale one that was committed fails
-  ["routes.gen.ts", ["pnpm", "hnk", "gen", ...(process.env.CI ? ["--check"] : [])]],
+  // Write routes.gen.ts first, so types and tests see the current routes
+  ["routes.gen.ts", ["pnpm", "hnk", "prepare"]],
   ["typecheck", ["pnpm", "typecheck"]],
   ["lint", ["pnpm", "lint"]],
   ["format:check", ["pnpm", "format:check"]],

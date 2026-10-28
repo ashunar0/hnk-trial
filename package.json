@@ -7,8 +7,8 @@
     "#src/*": "./src/*.ts"
   },
   "scripts": {
-    "postinstall": "hnk gen --if-missing",
-    "dev": "node scripts/dev.mjs",
+    "postinstall": "hnk prepare",
+    "dev": "wrangler dev",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint .",
     "format": "prettier --write .",
@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
-    "hono-kit": "link:/Users/a.kawanobe/dev/hono/hono-kit/packages/hono-kit",
+    "hono-kit": "^0.10.0",
     "hono": "^4.13.1",
     "zod": "^4.4.3"
   },

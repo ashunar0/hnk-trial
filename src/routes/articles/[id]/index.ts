@@ -17,7 +17,7 @@ export const GET = createEndpoint(
     const article = await articlesQueries.get(actor, id);
     if (article === null) return reply.failure(NotFound.code);
 
-    return reply(200, articleResponse(article));
+    return reply.success(articleResponse(article));
   },
 );
 
@@ -39,7 +39,7 @@ export const PUT = createEndpoint(
     const article = await articlesQueries.get(actor, id);
     if (article === null) throw new Error(`article ${id} is gone right after the write`);
 
-    return reply(200, articleResponse(article));
+    return reply.success(articleResponse(article));
   },
 );
 
@@ -56,6 +56,6 @@ export const DELETE = createEndpoint(
     const result = await articles.remove(actor, id);
     if (!result.ok) return reply.failure(result.error);
 
-    return reply(200, { ok: true });
+    return reply.success({ ok: true });
   },
 );

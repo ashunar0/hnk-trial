@@ -31,6 +31,6 @@ export const GET = createEndpoint(
 
     const page = await articlesQueries.listByAuthor(actor, id, query);
 
-    return reply(200, pageResponse(page, articleListItem));
+    return reply.success(pageResponse(page, articleListItem));
   },
 );

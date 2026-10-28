@@ -27,7 +27,7 @@ export const GET = createEndpoint(
 
     const page = await articlesQueries.list(actor, query);
 
-    return reply(200, pageResponse(page, articleListItem));
+    return reply.success(pageResponse(page, articleListItem));
   },
 );
 
@@ -51,6 +51,6 @@ export const POST = createEndpoint(
     const article = await articlesQueries.get(actor, id);
     if (article === null) throw new Error(`article ${id} is gone right after the write`);
 
-    return reply(200, articleResponse(article));
+    return reply.success(articleResponse(article));
   },
 );

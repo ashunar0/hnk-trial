@@ -14,7 +14,7 @@ export const GET = createEndpoint(
     const profile = await profileQueries.get(actor.id);
     if (profile === null) return reply.failure(NotFound.code);
 
-    return reply(200, profileResponse(profile));
+    return reply.success(profileResponse(profile));
   },
 );
 
@@ -34,6 +34,6 @@ export const PUT = createEndpoint(
     const profile = await profileQueries.get(actor.id);
     if (profile === null) throw new Error(`profile of ${actor.id} is gone right after the write`);
 
-    return reply(200, profileResponse(profile));
+    return reply.success(profileResponse(profile));
   },
 );
